@@ -1,0 +1,31 @@
+Historial de cambios
+====================
+
+29/01/2015
+----------
+
+- DA DB-HE/1: El cálculo de la transmitancia de huecos permite tener en cuenta
+  la influencia de los elementos de contacto entre vidrio o paneles y marcos,
+  siguiendo la formulación de la UNE EN ISO 10077.
+
+4/2/2015
+--------
+
+- DA DB-HE/1: Actualización de los valores de transmitancias térmicas lineales
+  de los separadores en huecos, incluyendo elementos convencionales y mejorados.
+
+30/7/2015
+---------
+
+- Documento descriptivo climas de referencia: Numeración de fórmulas e
+  incorporación de Anejo B con descripción del procedimiento de cálculo de
+  severidades climáticas y zonificación.
+
+19/01/2016
+----------
+
+- Archivos climáticos del CTE en formato .MET: Se han corregido los archivos
+  climáticos de las zonas A1, B1, alfa2 y alfa3 correspondientes a las Islas
+  Canarias, de modo que coincidan con los usados por la Herramienta Unificada
+  LIDER-CALENER.
+

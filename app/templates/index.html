@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>CTE Explorer</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 1.4rem; margin-bottom: 0; }
+  .subtitle { color: #666; font-size: 0.85rem; margin-top: 0.2rem; margin-bottom: 1.5rem; }
+  form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  input[type=text] { flex: 1; padding: 0.6rem; font-size: 1rem; border: 1px solid #999; }
+  button { padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; }
+  .result { border-top: 1px solid #ccc; padding: 1rem 0; }
+  .meta { font-size: 0.85rem; color: #555; margin-bottom: 0.4rem; }
+  .meta b { color: #111; }
+  .excerpt { line-height: 1.4; }
+  .excerpt mark { background: #fff3a0; }
+  .open-pdf { display: inline-block; margin-top: 0.4rem; font-size: 0.85rem; }
+  .status { color: #666; font-style: italic; }
+  .error { color: #a33; }
+</style>
+</head>
+<body>
+  <h1>CTE Explorer</h1>
+  <div class="subtitle">Research prototype &mdash; not a certified compliance tool. Always verify against the original PDF.</div>
+
+  <form id="search-form">
+    <input type="text" id="q" placeholder="¿Qué quieres encontrar?" autofocus>
+    <button type="submit">Buscar</button>
+  </form>
+
+  <div id="results"></div>
+
+<script>
+const form = document.getElementById('search-form');
+const input = document.getElementById('q');
+const resultsEl = document.getElementById('results');
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// The backend wraps matches with \u0001 / \u0002 markers instead of raw
+// HTML, so we can escape the excerpt first (it's extracted PDF text, not
+// trusted HTML) and only then turn the markers into <mark> tags.
+function renderExcerpt(raw) {
+  return escapeHtml(raw)
+    .replaceAll('\u0001', '<mark>')
+    .replaceAll('\u0002', '</mark>');
+}
+
+async function runSearch(q) {
+  resultsEl.innerHTML = '<p class="status">Buscando…</p>';
+  let data;
+  try {
+    const res = await fetch('/api/search?q=' + encodeURIComponent(q));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+  } catch (err) {
+    resultsEl.innerHTML = '<p class="error">Error al buscar: ' + escapeHtml(String(err)) + '</p>';
+    return;
+  }
+
+  if (!data.results || data.results.length === 0) {
+    resultsEl.innerHTML = '<p class="status">No relevant result found.</p>';
+    return;
+  }
+
+  resultsEl.innerHTML = data.results.map(r => `
+    <div class="result">
+      <div class="meta"><b>${escapeHtml(r.document)}</b> &middot; ${escapeHtml(r.section)} &middot; Página ${r.page_number}</div>
+      <div class="excerpt">${renderExcerpt(r.excerpt)}</div>
+      <a class="open-pdf" href="/pdf/${encodeURIComponent(r.filename)}#page=${r.page_number}" target="_blank" rel="noopener">Abrir PDF →</a>
+    </div>
+  `).join('');
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = input.value.trim();
+  if (q) runSearch(q);
+});
+</script>
+</body>
+</html>
